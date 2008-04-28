@@ -16,14 +16,17 @@ specifying the model and MAC address of the phone. Also, we'll force the phone
 to fetch this URL fast (10 seconds, default is 3600).
 
 <flat-profile>
-<Profile_Rule ua="na">http://x.x.x.x/provisioning/config.php?model=9xx&mac=$MA</Profile_Rule>
+<GPP_A ua="na">x.x.x.y</GPP_A>
+<Profile_Rule ua="na">http://$A/provisioning/config.php?model=$PSN&mac=$MA</Profile_Rule>
 <Resync_Periodic ua="na">10</Resync_Periodic>
 <Resync_Error_Retry_Delay ua="na">10</Resync_Error_Retry_Delay>
 <Resync_Fails_On_FNF ua="na">Yes</Resync_Fails_On_FNF>
 </flat-profile>
 
 After the timeout, the phone will fetch this URL, and a full configuration will
-be retrieved and activated.
+be retrieved and activated. Note we are using the General Purpose Register A, to
+store our server's IP address. We will use $A in every place that IP should go.
+This way, we just need to change this register for each new deployment.
 
 The config.php script will parse some configuration templates (in /etc/provisioning),
 and will produce a XML reponse for the phone.
@@ -36,7 +39,8 @@ model. More on how to generate this file later.
 any deployment-specific settings.
 3) site.cfg: Specific settings for a particular deployment. It usually includes
 proxy server IP, NTP and syslog server, regional settings, logos, etc.
-4) 9xx-{MAC}.cfg: Phone-specific settings. Basically, the extension number and pasword.
+4) 9xx-site.cfg: Specific settings for this phone model, e.g., firmware upgrades.
+5) 9xx-{MAC}.cfg: Phone-specific settings. Basically, the extension number and pasword.
 
 A template consists on a series of key:value pairs. Every template's settings
 override the previous ones, in cascade.
@@ -45,8 +49,13 @@ I'm including a little script (xml2cfg) to parse the xml configuration as downlo
 from the phone (http://x.x.x.y/admin/spacfg.xml), and generate the 9xx-default.cfg 
 template file.
 
+$ wget http://x.x.x.y/admin/spacfg.xml
+$ ./xml2cfg spacfg.xml > 9xx-default.cfg
+$ rm spacfg.xml
+
 CHANGELOG
 =========
+* 28-08-2008: Made use of GPP_A. Easier new deployments.
 * 14-08-2008: Initial release. Based on a PAP2 provisioning scripts I wrote time ago.
 
 LICENCE
