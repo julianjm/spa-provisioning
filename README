@@ -1,0 +1,69 @@
+Linsys/Sipura SPA9xx provisioning
+=================================
+
+What you will find here is a set of scripts I've created to ease the deployment
+of SPA9xx phones.
+
+Here is the boot process of a SPA9xx phone, with factory defaults:
+1) Grab an IP address from the DHCP server.
+2) Download the initial configuration file from the TFT server. It will default
+to the DHCP server, if not specificied in the DHCP response. The name of this
+file is "spa9xx.cfg".
+
+On this initial file, we'll rewrite the "Profile Rule", i.e., the URL where the
+phone downloads it's configuration. We'll point it to a PHP-enabled web server,
+specifying the model and MAC address of the phone. Also, we'll force the phone
+to fetch this URL fast (10 seconds, default is 3600).
+
+<flat-profile>
+<Profile_Rule ua="na">http://x.x.x.x/provisioning/config.php?model=9xx&mac=$MA</Profile_Rule>
+<Resync_Periodic ua="na">10</Resync_Periodic>
+<Resync_Error_Retry_Delay ua="na">10</Resync_Error_Retry_Delay>
+<Resync_Fails_On_FNF ua="na">Yes</Resync_Fails_On_FNF>
+</flat-profile>
+
+After the timeout, the phone will fetch this URL, and a full configuration will
+be retrieved and activated.
+
+The config.php script will parse some configuration templates (in /etc/provisioning),
+and will produce a XML reponse for the phone.
+
+These templates are read in specific order, to give maximun flexibility to the
+deployer (yes, that's you):
+1) 9xx-default.cfg: This file contains the factory default settings of the phone
+model. More on how to generate this file later.
+2) global.cfg: General customizations to the default settings. This should not include
+any deployment-specific settings.
+3) site.cfg: Specific settings for a particular deployment. It usually includes
+proxy server IP, NTP and syslog server, regional settings, logos, etc.
+4) 9xx-{MAC}.cfg: Phone-specific settings. Basically, the extension number and pasword.
+
+A template consists on a series of key:value pairs. Every template's settings
+override the previous ones, in cascade.
+
+I'm including a little script (xml2cfg) to parse the xml configuration as downloaded 
+from the phone (http://x.x.x.y/admin/spacfg.xml), and generate the 9xx-default.cfg 
+template file.
+
+CHANGELOG
+=========
+* 14-08-2008: Initial release. Based on a PAP2 provisioning scripts I wrote time ago.
+
+LICENCE
+=======
+GPL v2.
+
+TODO
+====
+* Move the configuration template to a database
+* Web GUI for configuring phones
+* Web GUI for configuring new phones. Just plug the phone, enter the web GUI and a 
+  list of unrecognized phones should appear.
+* Have a way to generate static cfg files, so that the only critical service is the
+  tftp server.
+
+
+CONTACT
+=======
+Julian Menendez <julianjm@gmail.com>
+http://www.julianmenendez.es (Asterisk(tm) related blog)
